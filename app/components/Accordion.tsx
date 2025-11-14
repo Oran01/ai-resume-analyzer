@@ -1,7 +1,39 @@
+/**
+ * Accordion.tsx
+ *
+ * A headless, reusable Accordion component system built with React context.
+ *
+ * Components:
+ * - <Accordion>        → Top-level provider that manages open/closed state.
+ * - <AccordionItem>    → Wraps each individual accordion section.
+ * - <AccordionHeader>  → Clickable header that toggles its section.
+ * - <AccordionContent> → Collapsible content area for each section.
+ *
+ * Features:
+ * - Supports single-open or multi-open modes (via `allowMultiple`).
+ * - Simple API: identify sections by a stable `itemId` string.
+ * - Customizable header icon (default chevron with rotation).
+ *
+ * Usage example:
+ * ```tsx
+ * <Accordion defaultOpen="item-1">
+ *   <AccordionItem id="item-1">
+ *     <AccordionHeader itemId="item-1">Section 1</AccordionHeader>
+ *     <AccordionContent itemId="item-1">
+ *       Content for section 1
+ *     </AccordionContent>
+ *   </AccordionItem>
+ * </Accordion>
+ * ```
+ */
+
 import type { ReactNode } from "react";
 import React, { createContext, useContext, useState } from "react";
 import { cn } from "~/lib/utils";
 
+/**
+ * Internal context shape for tracking active accordion items.
+ */
 interface AccordionContextType {
   activeItems: string[];
   toggleItem: (id: string) => void;
@@ -12,6 +44,10 @@ const AccordionContext = createContext<AccordionContextType | undefined>(
   undefined
 );
 
+/**
+ * Convenience hook for reading the Accordion context.
+ * Throws an error if used outside of <Accordion>.
+ */
 const useAccordion = () => {
   const context = useContext(AccordionContext);
   if (!context) {
@@ -20,6 +56,19 @@ const useAccordion = () => {
   return context;
 };
 
+/**
+ * Accordion
+ *
+ * Top-level container that:
+ * - Manages open/close state for all items.
+ * - Provides context to `AccordionHeader` and `AccordionContent`.
+ *
+ * Props:
+ * - `children`       → One or more AccordionItem components.
+ * - `defaultOpen`    → ID of the item that should be open by default.
+ * - `allowMultiple`  → If true, allows multiple items to be open at once.
+ * - `className`      → Optional custom class for the wrapper.
+ */
 interface AccordionProps {
   children: ReactNode;
   defaultOpen?: string;
@@ -37,6 +86,11 @@ export const Accordion: React.FC<AccordionProps> = ({
     defaultOpen ? [defaultOpen] : []
   );
 
+  /**
+   * Toggles a specific item by its ID.
+   * - In single mode (default): only one ID is active at a time.
+   * - In multiple mode: can add/remove IDs in the active array.
+   */
   const toggleItem = (id: string) => {
     setActiveItems((prev) => {
       if (allowMultiple) {
@@ -49,6 +103,7 @@ export const Accordion: React.FC<AccordionProps> = ({
     });
   };
 
+  /** Returns true if the given item ID is active/open. */
   const isItemActive = (id: string) => activeItems.includes(id);
 
   return (
@@ -60,6 +115,18 @@ export const Accordion: React.FC<AccordionProps> = ({
   );
 };
 
+/**
+ * AccordionItem
+ *
+ * Visual wrapper for a single accordion section.
+ * Note: The `id` prop is mainly used for semantics and pairing with
+ *       `itemId` on the header/content, but the toggling is done via `itemId`.
+ *
+ * Props:
+ * - `id`        → Unique identifier for the item (also useful for testing/DOM).
+ * - `children`  → Typically a Header + Content pair.
+ * - `className` → Optional extra classes for the outer container.
+ */
 interface AccordionItemProps {
   id: string;
   children: ReactNode;
@@ -78,6 +145,18 @@ export const AccordionItem: React.FC<AccordionItemProps> = ({
   );
 };
 
+/**
+ * AccordionHeader
+ *
+ * Clickable header that toggles an accordion section open/closed.
+ *
+ * Props:
+ * - `itemId`       → ID used to link this header to its content.
+ * - `children`     → Header label/content (e.g., title, summary).
+ * - `className`    → Extra classes for the header button.
+ * - `icon`         → Optional custom icon element.
+ * - `iconPosition` → "left" or "right" (default "right").
+ */
 interface AccordionHeaderProps {
   itemId: string;
   children: ReactNode;
@@ -96,6 +175,7 @@ export const AccordionHeader: React.FC<AccordionHeaderProps> = ({
   const { toggleItem, isItemActive } = useAccordion();
   const isActive = isItemActive(itemId);
 
+  // Default chevron icon that rotates when active
   const defaultIcon = (
     <svg
       className={cn("w-5 h-5 transition-transform duration-200", {
@@ -138,6 +218,17 @@ export const AccordionHeader: React.FC<AccordionHeaderProps> = ({
   );
 };
 
+/**
+ * AccordionContent
+ *
+ * Collapsible content container for an accordion section.
+ * Uses CSS transitions for height and opacity to animate open/close.
+ *
+ * Props:
+ * - `itemId`    → ID that links this content to its header.
+ * - `children`  → The content to show when the item is active.
+ * - `className` → Extra classes for the outer container.
+ */
 interface AccordionContentProps {
   itemId: string;
   children: ReactNode;
