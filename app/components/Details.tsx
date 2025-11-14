@@ -1,3 +1,28 @@
+/**
+ * Details.tsx
+ *
+ * Displays an in-depth breakdown of the resume feedback using an accordion layout.
+ *
+ * Structure:
+ * - One accordion item per category:
+ *    - Tone & Style
+ *    - Content
+ *    - Structure
+ *    - Skills
+ *
+ * Each category includes:
+ * - A header with the category title and a score badge.
+ * - A content section with:
+ *    - A compact list of tips (good/improve).
+ *    - Detailed cards explaining each tip.
+ *
+ * Props:
+ * - `feedback` (Feedback): Full analysis results returned by the ATS evaluation.
+ *
+ * Used in:
+ * - Resume details page (/resume/:id) as the "deep dive" section.
+ */
+
 import { cn } from "~/lib/utils";
 import {
   Accordion,
@@ -6,6 +31,19 @@ import {
   AccordionItem,
 } from "./Accordion";
 
+/**
+ * ScoreBadge
+ *
+ * Displays a small pill showing the numeric score for a category (e.g., 78/100),
+ * with background/text colors that reflect how good the score is.
+ *
+ * Color rules:
+ * - > 69 → green (strong)
+ * - > 39 → yellow (average)
+ * - else → red (needs improvement)
+ *
+ * @param score - Category score between 0 and 100.
+ */
 const ScoreBadge = ({ score }: { score: number }) => {
   return (
     <div
@@ -39,6 +77,17 @@ const ScoreBadge = ({ score }: { score: number }) => {
   );
 };
 
+/**
+ * CategoryHeader
+ *
+ * Renders the accordion header row for a single category.
+ * Shows:
+ * - Category title (e.g., "Content")
+ * - Category ScoreBadge (numeric + color-coded)
+ *
+ * @param title - The name of the category.
+ * @param categoryScore - Score for that category (0–100).
+ */
 const CategoryHeader = ({
   title,
   categoryScore,
@@ -54,6 +103,23 @@ const CategoryHeader = ({
   );
 };
 
+/**
+ * CategoryContent
+ *
+ * Shows detailed feedback for a single category, split into two sections:
+ *
+ * 1. Compact list:
+ *    - A grid of 2 columns listing each tip with an icon (check/warning)
+ *      and a short label.
+ *
+ * 2. Detailed explanations:
+ *    - Each tip rendered as a colored card (green for "good", yellow for "improve")
+ *      including:
+ *        - Tip title
+ *        - Explanation text
+ *
+ * @param tips - Array of feedback tips for this category.
+ */
 const CategoryContent = ({
   tips,
 }: {
@@ -61,6 +127,7 @@ const CategoryContent = ({
 }) => {
   return (
     <div className="flex flex-col gap-4 items-center w-full">
+      {/* Compact tips overview */}
       <div className="bg-gray-50 w-full rounded-lg px-5 py-4 grid grid-cols-2 gap-4">
         {tips.map((tip, index) => (
           <div className="flex flex-row gap-2 items-center" key={index}>
@@ -75,6 +142,8 @@ const CategoryContent = ({
           </div>
         ))}
       </div>
+
+      {/* Detailed tip cards */}
       <div className="flex flex-col gap-4 w-full">
         {tips.map((tip, index) => (
           <div
@@ -106,10 +175,33 @@ const CategoryContent = ({
   );
 };
 
+/**
+ * Details
+ *
+ * Main container component for the detailed resume feedback section.
+ *
+ * Behavior:
+ * - Renders an accordion with 4 items:
+ *    - Tone & Style
+ *    - Content
+ *    - Structure
+ *    - Skills
+ * - Each item uses:
+ *    - CategoryHeader for the title & score
+ *    - CategoryContent for tips & explanations
+ *
+ * @param feedback - Full feedback object containing category scores + tips.
+ *
+ * Example:
+ * ```tsx
+ * <Details feedback={analysis.feedback} />
+ * ```
+ */
 const Details = ({ feedback }: { feedback: Feedback }) => {
   return (
     <div className="flex flex-col gap-4 w-full">
       <Accordion>
+        {/* Tone & Style */}
         <AccordionItem id="tone-style">
           <AccordionHeader itemId="tone-style">
             <CategoryHeader
@@ -121,6 +213,8 @@ const Details = ({ feedback }: { feedback: Feedback }) => {
             <CategoryContent tips={feedback.toneAndStyle.tips} />
           </AccordionContent>
         </AccordionItem>
+
+        {/* Content */}
         <AccordionItem id="content">
           <AccordionHeader itemId="content">
             <CategoryHeader
@@ -132,6 +226,8 @@ const Details = ({ feedback }: { feedback: Feedback }) => {
             <CategoryContent tips={feedback.content.tips} />
           </AccordionContent>
         </AccordionItem>
+
+        {/* Structure */}
         <AccordionItem id="structure">
           <AccordionHeader itemId="structure">
             <CategoryHeader
@@ -143,6 +239,8 @@ const Details = ({ feedback }: { feedback: Feedback }) => {
             <CategoryContent tips={feedback.structure.tips} />
           </AccordionContent>
         </AccordionItem>
+
+        {/* Skills */}
         <AccordionItem id="skills">
           <AccordionHeader itemId="skills">
             <CategoryHeader
